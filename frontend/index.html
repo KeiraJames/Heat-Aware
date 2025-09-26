@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
+     <script src="app.js" defer></script>
 
 </head>
 <body>
@@ -20,12 +21,20 @@
     </banner>
 
     <main> 
-        <div>
-        <h1> Welcome to our app!</h1>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas, laudantium beatae natus dolores dicta ea ullam ipsum, tenetur iure voluptate quis ad vitae iusto non reiciendis exercitationem quo esse hic.</p>
+        <div class="intro">
+            <h1 style="margin: 0;"> Welcome to our app!</h1>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas, laudantium beatae natus dolores dicta ea ullam ipsum, tenetur iure voluptate quis ad vitae iusto non reiciendis exercitationem quo esse hic.</p>
+            </div>
+            <div class="flex-box-b">
+            <button type="button" > Click here to get started</button>
         </div>
+
+        <h1>Moisture Readings Above 20°C</h1>
+        <p>Data is filtered on the server and only displays high-temperature records.</p>
         
-        <button type="button"> Click here to get started</button>
+        <ul id="data-list">Loading data...</ul>
+    
+    
     </main>
 
     <footer> </footer>
