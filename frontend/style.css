@@ -1,0 +1,12 @@
+body {
+    background-color: antiquewhite;
+    padding: 0;
+    margin: 0;
+}
+.flex-box {
+    border: 2px solid black;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between
+
+}
