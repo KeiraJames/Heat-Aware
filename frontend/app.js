@@ -3,9 +3,9 @@ const REFRESH_INTERVAL_MS = 5000; // 5 seconds
 const ALERT_THRESHOLD_F = 80.0;
 const API_URL = '/api/data';
 
-// --- Global Data Store (for sparkline and dashboard state) ---
+// --- Global Data Store ---
 let temperatureHistory = [];
-let activeStream = null; // Replaces cameraStream
+let activeStream = null; // Used for webcam/stream management
 
 // --- Utility Functions ---
 
@@ -44,8 +44,7 @@ async function fetchSensorData() {
             return null;
         }
 
-        // We only care about the latest data for the main value, 
-        // but we keep the whole history for the chart (up to 50 readings)
+        // We use the last 50 readings for the sparkline chart
         temperatureHistory = data.slice(0, 50).reverse(); 
 
         return {
@@ -65,7 +64,7 @@ async function fetchSensorData() {
 }
 
 
-// --- INTEGRATED UTILITY CODE START ---
+// --- NEW INTEGRATED SPA AND UTILITY CODE START ---
 
 // Simple SPA router using hash
 const routes = ['#/', '#/login', '#/dashboard']
@@ -75,6 +74,11 @@ function showRoute(){
     const active = routes.includes(h) ? h : '#/'
     const el = document.querySelector(`[data-route="${active}"]`)
     if (el) el.classList.remove('hidden')
+
+    // Optional: Log when the user views the dashboard
+    if (active === '#/dashboard') {
+        logEvent('Dashboard loaded.', 'info');
+    }
 }
 
 // Parallax
@@ -106,10 +110,11 @@ function setupLogin(){
     })
 }
 
-// Temperature card with sparkline (INTEGRATED FETCH LOGIC HERE)
+// Temperature card with sparkline (NOW USING LIVE DATA)
 function setupTempCard(){
-    const svg = document.getElementById('spark')
-    const tempValue = document.getElementById('tempValue')
+    const svg = document.getElementById('spark');
+    const tempValue = document.getElementById('tempValue');
+    const dataElement = document.getElementById('data'); // 👈 Fetch element with ID 'data'
     if (!svg || !tempValue) return
 
     function getVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() }
@@ -163,9 +168,10 @@ function setupTempCard(){
     async function updateTempCard() {
         const data = await fetchSensorData();
         if (data && data.history.length > 0) {
+            // Use the actual historical temperature data for the sparkline
             drawSparkline(data.history);
 
-             // Log event for the latest reading (redundant check for alert is fine)
+             // Log event for the latest reading 
             const latestTempF = data.latest.temperature;
             let status = 'safe';
             let message = `Latest reading: ${latestTempF.toFixed(2)}°F.`;
@@ -179,13 +185,23 @@ function setupTempCard(){
             }
 
             logEvent(message, status);
+            
+            // 👈 UPDATED: Insert only the temperature value into the #data element
+            if (dataElement) {
+                // Display only the temperature, formatted to two decimal places
+                dataElement.textContent = latestTempF.toFixed(2);
+            }
+
         } else {
              tempValue.textContent = '--°F';
              logEvent('Waiting for first data transmission...', 'info');
+             if (dataElement) {
+                 dataElement.textContent = 'Awaiting initial data point...';
+             }
         }
     }
 
-    // Start the continuous data fetch loop
+    // Start the continuous data fetch loop using the constant interval
     updateTempCard(); // First run immediately
     setInterval(updateTempCard, REFRESH_INTERVAL_MS);
 }
@@ -247,7 +263,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setupLogin();
     setupVideo();
     
-    // 3. Setup and start the continuous data fetching loop
+    // 3. Setup and start the continuous data fetching loop (includes chart)
     setupTempCard(); 
 
     // Footer Year
