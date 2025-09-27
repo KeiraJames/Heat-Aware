@@ -1,42 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-     <script src="app.js" defer></script>
-
+    <title>Heat-Aware Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        h1 { font-size: 1.8rem; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 20px; }
+        .alert-box { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        .alert-safe { background-color: #e6f7e9; color: #27ae60; border: 1px solid #27ae60; }
+        .alert-critical { background-color: #fce4e4; color: #c0392b; border: 1px solid #c0392b; animation: pulse 1s infinite alternate; }
+        .data-list-container { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 8px; }
+        #data-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
+        #data-list li { padding: 5px 0; border-bottom: 1px dotted #bdc3c7; }
+        @keyframes pulse { from { box-shadow: 0 0 15px #c0392b; } to { box-shadow: 0 0 5px #fce4e4; } }
+    </style>
 </head>
 <body>
-    <banner> 
-        <div class="flex-box">
-            <h1> Heat Aware </h1>
-            
-            <div class="login-in">
-                <button> Login </button>
-                <button> Sign up</button>
-            </div>
-        </div>
-    </banner>
+    <div class="container">
+        <h1>Pet/Baby Safety Dashboard</h1>
 
-    <main> 
-        <div class="intro">
-            <h1 style="margin: 0;"> Welcome to our app!</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas, laudantium beatae natus dolores dicta ea ullam ipsum, tenetur iure voluptate quis ad vitae iusto non reiciendis exercitationem quo esse hic.</p>
-            </div>
-            <div class="flex-box-b">
-            <button type="button" > Click here to get started</button>
+        <!-- ALERT STATUS BOX -->
+        <div id="alert-box" class="alert-box alert-safe">
+            System Status: Checking...
         </div>
 
-        <h1>Moisture Readings Above 20°C</h1>
-        <p>Data is filtered on the server and only displays high-temperature records.</p>
-        
-        <ul id="data-list">Loading data...</ul>
-    
-    
-    </main>
+        <!-- CHART SECTION -->
+        <h2 style="font-size: 1.4rem; margin-top: 30px;">Temperature Trend  and Moisture History</h2>
+        <p>Threshold for Alert: 80</p>
+        <div>
+            <canvas id="temperatureChart"></canvas>
+        </div>
 
-    <footer> </footer>
+        <!-- RAW DATA LOG -->
+        <div class="data-list-container">
+            <h3 style="font-size: 1.2rem; margin-bottom: 10px;">Latest 50 Readings:</h3>
+            <!-- *** THIS IS THE ELEMENT YOUR JAVASCRIPT IS LOOKING FOR *** -->
+            <ul id="data-list">
+                <li>Awaiting data from server...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- The app.js script fetches data and draws the chart -->
+    <script src="app.js"></script>
 </body>
 </html>
