@@ -1,48 +1,214 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Heat-Aware Monitor</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        h1 { font-size: 1.8rem; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 20px; }
-        .alert-box { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
-        .alert-safe { background-color: #e6f7e9; color: #27ae60; border: 1px solid #27ae60; }
-        .alert-critical { background-color: #fce4e4; color: #c0392b; border: 1px solid #c0392b; animation: pulse 1s infinite alternate; }
-        .data-list-container { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 8px; }
-        #data-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
-        #data-list li { padding: 5px 0; border-bottom: 1px dotted #bdc3c7; }
-        @keyframes pulse { from { box-shadow: 0 0 15px #c0392b; } to { box-shadow: 0 0 5px #fce4e4; } }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SafeTemp Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer> </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Pet/Baby Safety Dashboard</h1>
+  <!-- flowing background + grain -->
+  <div class="flow-bg" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-        <!-- ALERT STATUS BOX -->
-        <div id="alert-box" class="alert-box alert-safe">
-            System Status: Checking...
-        </div>
-
-        <!-- CHART SECTION -->
-        <h2 style="font-size: 1.4rem; margin-top: 30px;">Temperature Trend  and Moisture History</h2>
-        <p>Threshold for Alert: 80</p>
-        <div>
-            <canvas id="temperatureChart"></canvas>
-        </div>
-
-        <!-- RAW DATA LOG -->
-        <div class="data-list-container">
-            <h3 style="font-size: 1.2rem; margin-bottom: 10px;">Latest 50 Readings:</h3>
-            <!-- *** THIS IS THE ELEMENT YOUR JAVASCRIPT IS LOOKING FOR *** -->
-            <ul id="data-list">
-                <li>Awaiting data from server...</li>
-            </ul>
-        </div>
+  <!-- Top Nav -->
+  <nav class="topnav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <img src="images/logo-mark.svg" alt="SafeTemp Lab" class="brand-mark">
+        <div class="brand-name">SafeTemp Lab</div>
+      </div>
+      <div class="links">
+        <a href="#/">Home</a>
+       <!--<a href="#/login">Login</a>-->
+        <a href="#map">Graph</a>
+      </div>
+      <a class="btn ghost" href="#/login">Get started</a>
     </div>
+  </nav>
 
-    <!-- The app.js script fetches data and draws the chart -->
-    <script src="app.js"></script>
+  <!-- LANDING -->
+  <main data-route="#/" class="route">
+    <header class="hero" id="hero">
+      <svg width="0" height="0" class="absolute">
+        <filter id="heat-shimmer">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006" numOctaves="2" seed="3">
+            <animate attributeName="baseFrequency" dur="10s" values="0.006;0.012;0.006" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" scale="6"/>
+        </filter>
+      </svg>
+
+      <div class="container">
+        <div class="blob a" data-speed="-0.05"></div>
+        <div class="blob b" data-speed="0.08"></div>
+
+        <div class="hero-brand">
+          <img src="images/logo-mark.svg" alt="SafeTemp Lab" class="brand-mark lg">
+          <span class="logo-text" style="filter:url(#heat-shimmer)">SafeTemp Lab</span>
+        </div>
+
+        <h1 class="title logo-text" style="filter:url(#heat-shimmer)">Heat awareness that feels live.</h1>
+        <p class="sub">
+          Live temperature, live video, and smart alerts—starting with Raspberry Pi.
+        </p>
+        <div class="cta">
+          <a class="btn" href="#/login">Get started</a>
+          <a class="btn ghost" href="#map">Explore graph</a>
+        </div>
+
+        <div class="features" id="heroFeatures">
+          <div class="card">
+            <div class="card-title">⏱ Right-now feed</div>
+            <div class="card-desc">Fresh updates of internal car temperature.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">🗺️ Temperature monitoring</div>
+            <div class="card-desc">Graph monitring change in temperature over time.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">📹 Instant communication</div>
+            <div class="card-desc">Immediate phone calls sent to mitigate heat danger.</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="map" class="section">
+      <div class="container">
+        <p class="eyebrow">Real time Graph</p>
+        <h2 class="h2">See how the internal temperature of your car changes</h2>
+        <!--<p class="muted">Shows temperature and car-interior risk. Legend keeps it simple.</p>-->
+        <div class="grid-3">
+          <div class="mapmock">
+            <div class="grid-overlay"></div>
+            <div class="pin danger" style="left:28%; top:42%"><span>Hot block</span></div>
+            <div class="pin caution" style="left:60%; top:65%"><span>Humid pocket</span></div>
+            <div class="pin safe" style="left:48%; top:28%"><span>Shaded plaza</span></div>
+          </div>
+          <div class="card legend">
+            <div class="card-title">Legend</div>
+            <div class="legend-dots">
+              <div><i class="dot safe"></i>Safe</div>
+              <div><i class="dot caution"></i>Caution</div>
+              <div><i class="dot danger"></i>Danger</div>
+            </div>
+            <!--
+            <ul class="bullets">
+              <li>Tap zones to see expected car interior temps</li>
+              <li>Overlay NWS alerts and shade layers</li>
+              <li>Save places: home, daycare, park</li>
+            </ul>-->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <img src="images/logo-text.svg" alt="SafeTemp Lab" class="logo-text-img">
+      <p class="muted small">© <span id="year"></span> SafeTemp Lab</p>
+    </footer>
+  </main>
+
+  <!-- LOGIN -->
+  <main data-route="#/login" class="route hidden">
+    <div class="center">
+      <form class="card form" id="loginForm">
+        <div class="brand">
+          <img src="images/logo-mark.svg" class="brand-mark" alt="SafeTemp Lab">
+          <div class="brand-name">SafeTemp Lab</div>
+        </div>
+        <div class="h3">Welcome back</div>
+        <p class="muted small">Sign in to view your dashboard.</p>
+        <label class="label">Email</label>
+        <input class="input" type="email" id="email" placeholder="you@example.com" required>
+        <label class="label">Password</label>
+        <input class="input" type="password" id="password" placeholder="••••••••" required>
+        <button class="btn wide" type="submit">Continue</button>
+        <p class="muted xsmall">No account? <a href="#/">Go back</a></p>
+      </form>
+    </div>
+  </main>
+
+  <!-- DASHBOARD -->
+  <main data-route="#/dashboard" class="route hidden">
+    <div class="dash-wrap">
+      <aside class="sidebar card">
+        <div class="brand">
+          <img src="images/logo-mark.svg" class="brand-mark" alt="SafeTemp Lab">
+          <div class="brand-name">SafeTemp Lab</div>
+        </div>
+        <nav class="side-links">
+          <a class="active">Overview</a>
+          <a>Devices</a>
+          <a>Alerts</a>
+          <a>Settings</a>
+        </nav>
+      </aside>
+      <section class="dash-main">
+        <div class="topbar card">
+          <div class="h3">Dashboard</div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-title-row">
+              <div class="card-title">Temperature</div>
+              <div class="muted xsmall">last ~1 min</div>
+            </div>
+            <div class="temp-row">
+              <div id="tempValue" class="temp-value">--°C</div>
+              <div class="muted small">Heat Index sim.</div>
+            </div>
+            <svg id="spark" width="200" height="60" viewBox="0 0 200 60"></svg>
+            <div class="legend-dots mt8">
+              <div><i class="dot safe"></i>Safe</div>
+              <div><i class="dot caution"></i>Caution</div>
+              <div><i class="dot danger"></i>Danger</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Live Video Feed</div>
+            <div class="muted small">Use webcam now; later paste your Pi stream URL.</div>
+            <div class="video-wrap">
+              <video id="video" playsinline controls></video>
+            </div>
+            <div class="row gap">
+              <button id="startCam" class="btn">Start Camera</button>
+              <button id="stopCam" class="btn ghost">Stop</button>
+            </div>
+            <div class="muted xsmall">or stream URL (MP4/HLS if supported):</div>
+            <div class="row gap">
+              <input class="input" id="streamUrl" placeholder="https://example.com/stream.m3u8">
+              <button id="loadUrl" class="btn">Load</button>
+            </div>
+            <div id="vidError" class="error"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Events</div>
+            <ul id="events" class="events"></ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Device</div>
+            <div class="muted small">Raspberry Pi 4 • Camera v3</div>
+            <div class="mt8 muted small">
+              <div>Location: Demo car</div>
+              <div>Status: Online</div>
+              <div>Stream: (use webcam or paste URL)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./app.js"></script>
 </body>
 </html>

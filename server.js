@@ -9,10 +9,9 @@ const PUBLIC_DIR = path.join(__dirname, "frontend");
 
 // --- MongoDB Configuration (Atlas Cloud) ---
 // Note: Node server uses the long Atlas URI for cloud connection
-const MONGO_URI = process.env.MONGO_URI;          // e.g. mongodb+srv://user:pass@cluster.example.net/db
+const MONGO_URI = process.env.MONGO_URI;        
 const DB_NAME = process.env.DB_NAME;
 const COLLECTION_NAME = process.env.COLLECTION;
->>>>>>> 5c93a06 (addingn env vars)
 const client = new MongoClient(MONGO_URI);
 let db;
 
@@ -41,6 +40,9 @@ const MIME_TYPES = {
     '.js': 'text/javascript',
     '.css': 'text/css',
     '.json': 'application/json',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
     'default': 'application/octet-stream' 
 };
 
