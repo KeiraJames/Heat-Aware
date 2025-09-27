@@ -495,3 +495,11 @@ a {
   transition: background-color 0.9s ease, color 0.9s ease;
 }
 
+#data{
+  font-size: 100px;
+  font-weight: bold;
+}
+.grid-3{
+  display: flex;
+  justify-content: center;
+}
