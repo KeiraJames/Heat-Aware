@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -8,12 +9,16 @@ const PUBLIC_DIR = path.join(__dirname, "frontend");
 
 // --- MongoDB Configuration (Atlas Cloud) ---
 // Note: Node server uses the long Atlas URI for cloud connection
+const MONGO_URI = process.env.MONGO_URI;          // e.g. mongodb+srv://user:pass@cluster.example.net/db
+const DB_NAME = process.env.DB_NAME;
+const COLLECTION_NAME = process.env.COLLECTION;
+>>>>>>> 5c93a06 (addingn env vars)
 const client = new MongoClient(MONGO_URI);
 let db;
 
 // Connect to MongoDB once when the server script runs
 async function connectToMongo() {
-    try {
+    try {              
         await client.connect();
         db = client.db(DB_NAME);
         
