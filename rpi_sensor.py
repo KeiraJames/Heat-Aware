@@ -1,105 +1,95 @@
 import time
-import sys
-from datetime import datetime
 from pymongo import MongoClient
-import board # Library for accessing GPIO/I2C
-from adafruit_seesaw.seesaw import Seesaw # Adafruit Seesaw sensor library
+import board
+from adafruit_seesaw.seesaw import Seesaw
+import os
 
 # --- Configuration ---
-# Updated to connect to a local MongoDB instance running on the default port.
-# If MongoDB is running on a different machine than the Pi, replace 'localhost' with that machine's IP.
-MONGO_URI = 'mongodb://localhost:27017' 
-DB_NAME = 'myDatabase'
-COLLECTION_NAME = 'myCollection'
-ALERT_THRESHOLD_C = 26.67 # 80°F converted to Celsius 
-INTERVAL_SECONDS = 10 # 10-second loop interval
+# Pi connects DIRECTLY to the MongoDB Atlas Cloud Cluster.
+MONGO_URI = os.environ.get('MONGO_URI')
+DB_NAME = os.environ.get('DB_NAME')
+COLLECTION_NAME = os.environ.get('COLLECTION_NAME')
 
-# --- Sensor Setup (Using I2C Bus) ---
-try:
-    i2c_bus = board.I2C()  # Uses board.SCL and board.SDA
-    # Initialize Seesaw sensor at address 0x36
-    ss = Seesaw(i2c_bus, addr=0x36)
-except Exception as e:
-    print(f"❌ Failed to initialize I2C sensor: {e}")
-    # Exiting if the sensor cannot be found or initialized
-    sys.exit(1)
+ALERT_THRESHOLD_F = 80.0 # 🎯 THRESHOLD: 80.0 degrees Fahrenheit
+SIMULATION_INTERVAL_SEC = 10
 
-# --- Database Connection ---
+# --- MongoDB Client Setup ---
 try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    # Check connection health
-    client.admin.command('ismaster') 
+    client = MongoClient(MONGO_URI)
+    client.admin.command('ping')
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
-    # Changed confirmation message to reflect local connection
-    print(f"✅ Connected to local MongoDB at {MONGO_URI}.")
+    print(f"✅ Pi connected to MongoDB ATLAS: {DB_NAME}.{COLLECTION_NAME}")
+    MONGO_READY = True
 except Exception as e:
-    print(f"❌ Failed to connect to MongoDB: {e}")
-    sys.exit(1)
+    print(f"❌ MongoDB Connection Error: {e}")
+    print("   Check network connectivity and ensure the Pi's IP is whitelisted in Atlas.")
+    MONGO_READY = False
+    collection = None # Ensure collection variable is defined even on failure
 
+# Initialize I2C connection
+try:
+    i2c_bus = board.I2C()
+    ss = Seesaw(i2c_bus, addr=0x36)
+    print("✅ Seesaw sensor initialized via I2C.")
+    SENSOR_READY = True
+except Exception as e:
+    print(f"❌ I2C Initialization Error: {e}. Using mock data.")
+    SENSOR_READY = False
 
-def read_sensor_data():
-    """
-    Reads actual temperature and moisture from the Adafruit Seesaw sensor.
-    """
-    try:
-        # Read moisture and temperature using the configured Seesaw object
-        moisture_value = ss.moisture_read()
-        temperature_c = ss.get_temp() 
-        
-        # Basic check for invalid reads (sensor issues)
-        if temperature_c is None or moisture_value is None:
-            raise Exception("Sensor returned None value. Read may have failed.")
-        
-        return round(temperature_c, 2), moisture_value
+def convert_c_to_f(celsius):
+   
+    return (celsius * 9/5) + 32
 
-    except Exception as e:
-        print(f"Error reading sensor: {e}. Check wiring and I2C connection.")
-        return None, None
+def send_alert(temperature_f):
+    """Logs the critical alert using the Fahrenheit value."""
+    print("*******************************************")
+    print(f"🚨 CRITICAL ALERT: TEMPERATURE IS {temperature_f:.2f}°F")
+    print("   Action: Logged alert locally (80°F threshold exceeded).")
+    print("*******************************************")
 
+def save_data(temperature_f, moisture_value):
+    """Inserts data into the MongoDB Atlas collection, storing Fahrenheit."""
 
-def send_data_and_alert():
-    """Gathers data, checks alert condition, and inserts into MongoDB."""
-    
-    temperature, moisture = read_sensor_data()
-
-    if temperature is None or moisture is None:
-        return # Skip insertion if sensor read failed
+    if not MONGO_READY or collection is None:
+        # Prevent crash if MongoDB connection failed
+        print("🔴 Skipping MongoDB write: Client is not connected.")
+        return
 
     data = {
-        'temperature': temperature,
-        'moisture_value': moisture,
-        'timestamp': datetime.now().timestamp() * 1000 # Store as milliseconds epoch
+        "temperature": temperature_f, # 🎯 CHANGED: Storing Fahrenheit here
+        "moisture_value": moisture_value,
+        "timestamp": time.time() * 1000 # Save as milliseconds
     }
 
     try:
-        # Insert data into MongoDB
         collection.insert_one(data)
-        
-        status_message = f"[{datetime.now().strftime('%H:%M:%S')}] Inserted: Temp={temperature}°C, Moisture={moisture}"
-
-        # 🎯 CRITICAL ALERT CHECK (80°F or 26.67°C)
-        if temperature >= ALERT_THRESHOLD_C:
-            status_message += " -> 🔥 CRITICAL DANGER! TRIGGERING PHONE CALL."
-            # **Integration point:** This is where you add your Twilio/phone service API call.
-            
-        else:
-            status_message += " (Safe)"
-            
-        print(status_message)
-        
     except Exception as e:
-        print(f"Error inserting into MongoDB: {e}")
+        print(f"❌ MongoDB Insertion Error: {e}")
+
+# Main loop to read data and save it every 10 seconds
+while True:
+    if SENSOR_READY:
+        moisture_value = ss.moisture_read()
+        temperature_c = ss.get_temp() # Sensor returns Celsius
+
+    # 1. Convert to Fahrenheit
+    temperature_f = convert_c_to_f(temperature_c)
+
+    # 2. Save the Fahrenheit data
+    save_data(temperature_f-10, moisture_value)
+
+    # 3. Check for alert condition
+    if temperature_f >= ALERT_THRESHOLD_F:
+        send_alert(temperature_f)
+
+    # 4. Print status
+    print(f"Temp: {temperature_f:.2f}°F | Moisture: {moisture_value}")
+
+    time.sleep(SIMULATION_INTERVAL_SEC)
 
 
-def main():
-    """Main loop to continuously gather and send data."""
-    print(f"Starting sensor monitoring. Sending data every {INTERVAL_SECONDS} seconds...")
-    print(f"Alert set at: {ALERT_THRESHOLD_C}°C (80°F)")
-    
-    while True:
-        send_data_and_alert()
-        time.sleep(INTERVAL_SECONDS)
 
-if __name__ == '__main__':
-    main()
+
+
+
