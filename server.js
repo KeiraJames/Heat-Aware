@@ -8,7 +8,7 @@ const twilio = require('twilio');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 
-const PORT = 5002;
+const PORT =process.env.PORT || 5002; // to deploy on render 
 const PUBLIC_DIR = path.join('/', 'Users', 'keira', 'Desktop', 'Heat-Aware', 'frontend');
 
 // --- MongoDB Configuration (Uses .env) ---
