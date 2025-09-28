@@ -9,7 +9,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 
 const PORT =process.env.PORT || 5003; // to deploy on render 
-const PUBLIC_DIR = path.join('/', 'Users', 'keira', 'Desktop', 'Heat-Aware', 'frontend');
+const PUBLIC_DIR = path.join(__dirname, 'frontend');
 
 // --- MongoDB Configuration (Uses .env) ---
 const MONGO_URI = process.env.MONGO_URI;
